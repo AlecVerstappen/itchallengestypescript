@@ -1,0 +1,37 @@
+name: Build & test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build-and-test:
+    timeout-minutes: 5
+    name: "Build & Test"
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v4
+    # Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    # Setup pnpm
+    - name: Setup pnpm
+      run: npm install -g pnpm
+    # Install dependencies
+    - name: Install dependencies
+      run: pnpm install
+    # Run unit tests
+    - name: Run unit tests
+      run: pnpm vitest
+    # Install playwright dependencies
+    - name: Install playwright dependencies
+      run: npx playwright install
+    # Run e2e tests
+    - name: Run e2e tests
+      run: npx playwright test
