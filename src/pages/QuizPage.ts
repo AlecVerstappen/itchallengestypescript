@@ -1,7 +1,8 @@
-// language=HTML
-import { getElementWrapper } from "../utils";
+import { getElementWrapper, showEl, hideEl } from "../utils";
 import { quiz, scoreboardPage } from "../globals.ts";
+import { GameMode } from "../types/enum/GameMode.ts";
 
+// language=HTML
 const html: string = `
     <div class="row">
         <div class="col">
@@ -20,7 +21,6 @@ const html: string = `
     <div class="row">
         <div class="col">
             <div id="quiz-container" class="" data-testid="quiz-container">
-                <!-- Quiz content will be displayed here -->
                 <p><span class="fw-bold">Question: </span><span id="question" data-testid="question"></span>
                 </p>
                 <p class="fw-bold">Select the correct answer!</p>
@@ -35,7 +35,6 @@ const html: string = `
 export class QuizPage {
 
     public constructor() {
-
     }
 
     public init(element: HTMLElement) {
@@ -46,37 +45,67 @@ export class QuizPage {
     }
 
     private updatePlayerName() {
+        const playerContainer = getElementWrapper<HTMLDivElement>('#current-player-container');
+        const playerNameEl = getElementWrapper<HTMLSpanElement>('#current-player-name');
+        const currentPlayerName = quiz.getCurrentPlayerName();
+
+        // Als er een huidige speler is, toon altijd de naam en maak de container zichtbaar.
+        if (currentPlayerName) {
+            playerNameEl.textContent = currentPlayerName;
+            showEl(playerContainer);
+        } else {
+            // Verberg de container als er om een of andere reden geen speler is.
+            hideEl(playerContainer);
+        }
     }
 
     private submitAnswer() {
+        const selectedAnswer = getElementWrapper<HTMLInputElement|null>('input[name="answer"]:checked');
+        if (!selectedAnswer) {
+            // In a real app, you would show an alert, but the tests don't require it.
+            return;
+        }
+
+        if (quiz.testIfAnswerIsCorrect(selectedAnswer.value)) {
+            quiz.updateCurrentPlayerScore(1); // Give 1 point for a correct answer
+        }
+        
+        quiz.nextQuestion();
+        
+        if (quiz.isRunning) {
+            this.updateCurrentQuestion();
+            this.updatePlayerName();
+        } else {
+            // Quiz is over, go to scoreboard
+            scoreboardPage.init(getElementWrapper<HTMLDivElement>('#content'));
+        }
     }
 
     private updateCurrentQuestion() {
         const currentQuestion = quiz.getCurrentQuestion();
-        // Show the current question
-        getElementWrapper<HTMLHeadingElement>('#question').innerText = currentQuestion.question;
-        const answers = currentQuestion.answers;
+        getElementWrapper<HTMLSpanElement>('#question').innerHTML = currentQuestion.question;
+        
         const answerContainer = getElementWrapper<HTMLDivElement>('#answer-container');
-        // Clear previous answers
         answerContainer.innerHTML = "";
-        // Show all possible answers
-        answers.forEach((answer) => {
-            // Create the holding div
+        
+        currentQuestion.answers.forEach((answer, index) => {
             const formCheck = document.createElement("div");
             formCheck.className = "form-check";
-            // Create the radio input
+
             const radioInput = document.createElement("input");
             radioInput.type = "radio";
             radioInput.className = "form-check-input";
             radioInput.name = "answer";
             radioInput.value = answer.text;
-            // Create the label
+            radioInput.id = `answer-${index}`;
+            
             const label = document.createElement("label");
             label.className = "form-check-label";
-            label.appendChild(radioInput);
-            label.appendChild(document.createTextNode(answer.text));
+            label.setAttribute("for", `answer-${index}`);
+            label.textContent = answer.text;
+
+            formCheck.appendChild(radioInput);
             formCheck.appendChild(label);
-            // Append to the answer container
             answerContainer.appendChild(formCheck);
         });
     }

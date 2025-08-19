@@ -1,7 +1,7 @@
-//language=HTML
 import { getElementWrapper } from "../utils";
 import { homePage, quiz } from "../globals.ts";
 
+//language=HTML
 const html: string = `
     <div class="row">
         <div class="col">
@@ -11,7 +11,6 @@ const html: string = `
     <div class="row">
         <div class="col">
             <ol id="scoreboard" data-testid="scoreboard"></ol>
-            <!-- restart quiz game -->
             <button id="btn-restart-game" class="btn btn-danger mt-5" data-testid="btn-restart-game">Restart Game
             </button>
         </div>
@@ -25,13 +24,23 @@ export class ScoreboardPage {
     public init(contentElement: HTMLElement) {
         contentElement.innerHTML = html;
         this.showScoreboard();
-        // Add event listeners
         getElementWrapper<HTMLButtonElement>("#btn-restart-game").addEventListener("click", () => this.restartGame());
     }
 
     private restartGame() {
+        quiz.resetGame();
+        homePage.init(getElementWrapper<HTMLDivElement>('#content'));
     }
 
     private showScoreboard() {
+        const scoreboardEl = getElementWrapper<HTMLOListElement>('#scoreboard');
+        scoreboardEl.innerHTML = '';
+        const sortedPlayers = quiz.sortPlayersByScore();
+
+        sortedPlayers.forEach(player => {
+            const li = document.createElement('li');
+            li.textContent = `${player.name} - Score: ${player.score}`;
+            scoreboardEl.appendChild(li);
+        });
     }
 }

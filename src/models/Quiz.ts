@@ -91,18 +91,19 @@ export class Quiz {
             return;
         }
 
-        if (this.gameMode === GameMode.Multi) {
-            this.currentPlayerIndex++;
-            if (this.currentPlayerIndex >= this.players.length) {
-                this.currentPlayerIndex = 0;
-                this.currentQuestionIndex++;
-            }
-        } else {
-            this.currentQuestionIndex++;
+        let nextQuestionIndex = this.currentQuestionIndex + 1;
+        let nextPlayerIndex = this.currentPlayerIndex;
+
+        if (nextQuestionIndex >= this.questions.length && this.players.length > 1) {
+            nextQuestionIndex = 0;
+            nextPlayerIndex++;
         }
 
-        if (this.currentQuestionIndex >= this.questions.length) {
-             this.currentQuestionIndex = 0;
+        if (nextPlayerIndex < this.players.length) {
+            this.currentQuestionIndex = nextQuestionIndex;
+            this.currentPlayerIndex = nextPlayerIndex;
+        } else {
+            this.endQuiz();
         }
     }
 
