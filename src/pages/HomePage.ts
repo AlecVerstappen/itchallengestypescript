@@ -52,7 +52,25 @@ export class HomePage {
     }
 
     private validateFields = (): boolean => {
-        return false;
+        const inputGameMode = getElementWrapper<HTMLInputElement>('#input-game-mode');
+        const inputAmountPlayers = getElementWrapper<HTMLInputElement>('#input-amount-players');
+        const inputAmountQuestions = getElementWrapper<HTMLInputElement>('#input-question-amount');
+
+        if (inputGameMode.checked && !inputAmountPlayers.value) {
+            displayAlert("Please enter the amount of players");
+            return false;
+        }
+
+        if (inputGameMode.checked && parseInt(inputAmountPlayers.value) < 2) {
+            displayAlert("You need at least 2 players for multiplayer");
+            return false;
+        }
+
+        if (!inputAmountQuestions.value) {
+            displayAlert("Please enter the amount of questions");
+            return false;
+        }
+        return true;
     }
 
     private saveConfiguration = () => {
@@ -80,8 +98,16 @@ export class HomePage {
     }
 
     private toggleQuestionModeLabel = () => {
+        const inputQuestionMode = getElementWrapper<HTMLInputElement>('#input-question-mode');
+        const lblQuestionMode = getElementWrapper<HTMLLabelElement>('#lbl-question-mode');
+        lblQuestionMode.textContent = inputQuestionMode.checked ? "API questions" : "Free input";
     }
 
     private toggleGameModeLabel = () => {
+        const inputGameMode = getElementWrapper<HTMLInputElement>('#input-game-mode');
+        const lblGameMode = getElementWrapper<HTMLLabelElement>('#lbl-game-mode');
+        const rowAmountPlayers = getElementWrapper<HTMLDivElement>('#rowAmountPlayers');
+        lblGameMode.textContent = inputGameMode.checked ? "Multiplayer" : "Single player";
+        inputGameMode.checked ? showEl(rowAmountPlayers) : hideEl(rowAmountPlayers);
     }
 }

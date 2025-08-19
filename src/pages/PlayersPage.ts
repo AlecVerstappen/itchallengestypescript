@@ -1,7 +1,7 @@
-// language=HTML
 import { questionsPage, quiz } from "../globals.ts";
-import { displayAlert, getElementWrapper } from "../utils";
+import { displayAlert, getElementWrapper, enableEl } from "../utils";
 
+// language=HTML
 const html = `
     <div class="row">
         <div class="col" data-testid="intro"><p>Enter all players that will participate in the quiz. You can continue
@@ -41,12 +41,10 @@ export class PlayersPage {
 
     private updatePlayerList() {
         const playerList = getElementWrapper<HTMLUListElement>("#player-list");
-        // Clear the list
         playerList.innerHTML = "";
-        // Set the title
         const title = getElementWrapper<HTMLHeadingElement>("#title-player-list");
         title.textContent = `Player list (${quiz.players.length}/${quiz.getNumberOfPlayers()})`;
-        // Add players to the list
+
         if (quiz.players.length > 0) {
             quiz.players.forEach(p => {
                 const li = document.createElement("li");
@@ -58,12 +56,31 @@ export class PlayersPage {
             li.textContent = "No players added";
             playerList.appendChild(li);
         }
+
+        if (quiz.players.length === quiz.getNumberOfPlayers()) {
+            enableEl(getElementWrapper<HTMLButtonElement>("#btn-go-to-questions"));
+        }
     }
 
-    private validatePlayerName = (): boolean => {
-        return false;
+    private validatePlayerName(name: string): boolean {
+        if (!name) {
+            displayAlert("Please enter a player name");
+            return false;
+        }
+        if (quiz.players.some(p => p.name === name)) {
+            displayAlert("Player name must be unique");
+            return false;
+        }
+        return true;
     }
 
     private addPlayer() {
+        const inputPlayer = getElementWrapper<HTMLInputElement>("#input-player");
+        const playerName = inputPlayer.value.trim();
+        if (this.validatePlayerName(playerName)) {
+            quiz.addPlayer(playerName);
+            this.updatePlayerList();
+            inputPlayer.value = "";
+        }
     }
 }
